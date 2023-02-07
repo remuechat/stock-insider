@@ -55,5 +55,5 @@ end_date = datetime.strptime(input('What date will you want to end? (YYYY-MM-DD)
 
 views_per_day = get_views_per_day(searchArticle, start_date, end_date)
 
-with open(f'{searchArticle}_filtered_views.json', 'w') as file:
+with open(f'{searchArticle}_wiki_views.json', 'w') as file:
     file.write(json.dumps(views_per_day, indent=4))
