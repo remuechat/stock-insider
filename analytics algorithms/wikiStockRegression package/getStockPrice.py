@@ -24,6 +24,7 @@ def get_daily_prices(symbol, start_date, end_date):
 api_key = "6WQ39K46TPM7TSFO"
 symbol = ""
 # filler dates for the mean time, add user input later, add error handling
+article = str(input('What is the name of the Wikipidea Article?'))
 symbol = str(input('What is the name of the Stock?'))
 date_format = "%Y-%m-%d"
 start_date = datetime.strptime(input('What date will you want to start? (YYYY-MM-DD): '), date_format)
@@ -32,5 +33,5 @@ end_date = datetime.strptime(input('What date will you want to end? (YYYY-MM-DD)
 perDayPrices = get_daily_prices(symbol, start_date, end_date)
 
 #store in a JSON file
-with open('perDayPrices.json', 'w') as fp:
+with open(f'{article}_perDayPrices.json', 'w') as fp:
     json.dump(perDayPrices, fp)

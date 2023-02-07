@@ -1,35 +1,98 @@
-import pandas as pd
+import json
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
 
-# PERMANENT: Plots the data from the JSON file created by getWikiViews.py
-#            against the stock data from the CSV file created by getStockData.py
-#            to see if there is a correlation between the two, outputting a graph
-#            of the data and correlation coefficient (NOTE: UNFINISHED)
 
-tweets_normal = pd.read_csv(r'data/data.csv')
-tweets_normal.date = pd.to_datetime(tweets_normal.date, format = '%Y-%m-%d')
+def plotSingleJSON(article, label, color='b'):
+    with open(f'{article}_filtered_prices.json') as f:
+        data = json.load(f)
 
-fig, ax1 = plt.subplots()
+    dates = list(data.keys())
+    #multiple values will should probably be replaced, like inputting multiple json files
+    values = list(data.values())
 
-color = 'tab:red'
-ax1.set_xlabel('Date')
-ax1.set_ylabel('Bitcoin Price (US Dollar)', color=color)
+    plt.plot(dates, values, color=color, label=label)
+    plt.xticks(rotation=90)
+    plt.xlabel('Date')
+    plt.ylabel(label)
+    plt.legend()
+    plt.show()
 
-plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=15))
-plt.plot(tweets_normal.date,tweets_normal.price, color=color)
-plt.gcf().autofmt_xdate()
-ax1.tick_params(axis='y', labelcolor=color)
+def plotMultipleJSON(article, label, color='b'):
+    with open(f'{article}_filtered_prices.json') as f:
+        data = json.load(f)
 
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    dates = list(data.keys())
+    #multiple values will should probably be replaced, like inputting multiple json files
+    values = list(data.values())
 
-color = 'tab:blue'
-ax2.set_ylabel('Bitcoin Tweet Sentiment', color=color)  # we already handled the x-label with ax1
-ax2.plot(tweets_normal.date,tweets_normal.compound, color=color)
-ax2.tick_params(axis='y', labelcolor=color)
-plt.xticks(rotation=45)
+    plt.plot(dates, values, color=color, label=label)
+    plt.xticks(rotation=90)
+    plt.xlabel('Date')
+    plt.ylabel(label)
+    plt.legend()
+    plt.show()
 
-plt.title('Bitcoin price vs Bitcoin Tweet Sentiment')
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
-plt.show()
+def plotPriceAgainstViewsJSON(article):
+    with open(f'{article}_filtered_prices.json') as f:
+        pricesJSON = json.load(f)
+
+    with open(f'{article}_filtered_views.json') as f:
+        viewsJSON = json.load(f)
+
+    x = list(viewsJSON.keys())
+    views = list(viewsJSON.values())
+    prices = list(pricesJSON.values())
+
+    # Initialize the figure and axis
+    fig, ax1 = plt.subplots(figsize=(10, 6), dpi=100)
+
+    # Plot y1 on the left y-axis
+    ax1.plot(x, views, color='b', label='')
+    ax1.set_xlabel('Dates')
+    plt.xticks(rotation=45)
+    ax1.set_ylabel('Views', color='g')
+    ax1.tick_params(axis='y', labelcolor='b')
+
+    # Create a second y-axis on the right with a different scale
+    ax2 = ax1.twinx()
+    ax2.plot(x, prices, color='g', label='')
+    ax2.set_ylabel('Prices', color='k')
+    ax2.tick_params(axis='y', labelcolor='r')
+
+    plt.title(f'{article} Stock Prices vs Wikipedia Views')
+    plt.legend()
+    plt.show()
+
+def plotJSONwithTrendline(article):
+    with open(f'{article}_filtered_prices.json') as f:
+        pricesJSON = json.load(f)
+
+    with open(f'{article}_filtered_views.json') as f:
+        viewsJSON = json.load(f)
+
+    views = list(viewsJSON.values())
+    prices = list(pricesJSON.values())
+
+    viewsReg = np.array(views).reshape((-1, 1))
+    pricesReg = np.array(prices)
+    model = LinearRegression().fit(viewsReg, pricesReg)
+    r_sq = model.score(viewsReg, pricesReg)
+    print(f"coefficient of determination: {r_sq}")
+
+    data = {'views': views,
+            'stocks': prices}
+
+    df = pd.DataFrame(data)
+
+    # Plot the data and fit a regression line
+    sns.regplot(x='views', y='stocks', data=df)
+
+
+    plt.title(f'{article} Regression of Stock Prices vs Wikipedia Views')
+    plt.show()
+
+plotJSONwithTrendline('Apple Inc.')
